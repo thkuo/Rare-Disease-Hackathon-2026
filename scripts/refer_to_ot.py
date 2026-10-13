@@ -30,35 +30,36 @@ suspicious_status = [
 filtered_ot_df = ot_df[
     ot_df["reviewStatus"].apply(lambda x: x not in suspicious_status)]
 assert len(filtered_ot_df) > 0
-# focus on those with certainty of pathogenicity
-def filter_cln_sig(sig_classes: list = []):
-    # Given a list of clinical significance labels, 
-    # check whether any of them is one of the labels of interests
-    sel_cln_significance = [
-        'pathogenic',
-        'likely pathogenic',
-        'likely pathogenic, pathogenic']
-    out = any([x in sel_cln_significance for x in sig_classes])
-    return out
-    
 
-filtered_ot_df = filtered_ot_df[
-    filtered_ot_df["clinicalSignificances"].apply(
-        lambda x: filter_cln_sig(x))]
-assert len(filtered_ot_df) > 0
-assert filtered_ot_df.shape[0] <= ot_df.shape[0], "unexpected filtration result"
+# classify variants by clinical significances
+sig_cls_df = pd.DataFrame({
+    "clinicalSignificances":
+        ["pathogenic",
+         "likely pathogenic, pathogenic",
+         "likely pathogenic",
+         "uncertain significance",
+         "likely benign",
+         "benign, likely benign",
+         "benign"],
+        "class":[1, 1, 2, 2, 2, 3, 3]})
+ranked_significances = filtered_ot_df[
+    ["variantRsId", "clinicalSignificances"]].explode(
+        "clinicalSignificances").merge(
+            sig_cls_df, on="clinicalSignificances",
+            how = "left").sort_values(by = "class") 
+vars_top_sig_df = ranked_significances.drop_duplicates(
+    subset = "variantRsId", keep = "first")
 
-filtered_ot_df["symbol"].value_counts()
-
-# Some variants are associated with more than one gene due to their impacts
-# to a disntant gene. For instance, rs2140912326 is located in BUB1B, which can cause
-# a stop change in the gene. It is also a upstream variant to PAK6.
-var_rsid_occurence = filtered_ot_df["variantRsId"].value_counts()
-var_rsid_occurence[var_rsid_occurence > 1]
-
-# print the rsId as patterns to filter the VCF file
-out_f = "causal_var.txt"
-with open(out_f, "w") as out_fh:
-    var_rsid_occurence.index.to_series().to_csv(
-        out_fh, header = False, index = False)
-assert os.path.isfile(out_f)
+sig_classes = vars_top_sig_df['class'].value_counts().index.to_list()
+for sig_class in sig_classes:
+    out_f = "causal_var_class{}.txt".format(sig_class)
+    try:
+        with open(out_f, "w") as out_fh:
+            sel_variants = vars_top_sig_df[
+                vars_top_sig_df["class"] == sig_class]["variantRsId"]
+            sel_variants = sel_variants[sel_variants.apply(lambda x: x is not None)]
+            sel_variants.to_csv(
+                out_fh, header = False, index = False)
+        assert os.path.isfile(out_f), "Error in saving {}".format(out_f)
+    except AssertionError as e:
+        print(e)
