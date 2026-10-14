@@ -24,6 +24,20 @@ bedtools intersect -wa -wb \
 ```
     ii. manually review the matched variants using public data (e.g., dbSNP)
 
+## Scoring method
+
+- qualification score: reliable signal or not
+  1, if QUAL == PASS
+  0, otherwise
+- association score: overlap with published causal variants
+  n, if overlapping with n causal variants
+- consequence score: how impactful is the variant
+  1, if any strong effect (e.g., stop codon) is labeled
+  .5, if no strong effect but any intermeidate effect (e.g., upstream) is labeled
+  0, otherwise
+- frequency score: whether the allele is rare
+  1, if Alt allele frequency is <= 0.01
+
 # Result
 - clnvar_mva.bed: MVA causal variants listed in [ClnVar](https://www.ncbi.nlm.nih.gov/clinvar/search/?assembly=GRCh38&disease=mosaic%20variegated%20aneuploidy)
 - manual_review_clnvar_matched.xlsx: allele frequencies and genetic consequence per variant
