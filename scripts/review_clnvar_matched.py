@@ -3,6 +3,7 @@ import os
 import warnings
 import pandas as pd
 import re
+import random
 
 os.chdir("scripts/")
 
@@ -27,14 +28,19 @@ matched_var_df.columns = vcf_col + bed_col
 qual_df = matched_var_df[["CHROM", "POS", "REF", "ALT", "FILTER"]]
 
 # layer 3: allele frequnecy
-review_f = "manual_review_clnvar_matched.xlsx"
+# load the manual review table
+review_f = "manual_review_clnvar_matched_Data.txt"
 assert os.path.isfile(review_f)
 review_df = pd.DataFrame()
-impact_rating_df = pd.DataFrame()
 with open(review_f, "rb") as review_fh:
-    review_df = pd.read_excel(review_fh, sheet_name="Sheet1")
-    impact_rating_df = pd.read_excel(review_fh,
-                                     sheet_name="Ensembl_impact_rating")
+    review_df = pd.read_table(review_fh, sep = "\t")
+# the impact rating from Ensembl
+impact_rating_f = "manual_review_clnvar_matched_Ensembl_impact_rating.txt"
+assert os.path.isfile(impact_rating_f)    
+impact_rating_df = pd.DataFrame()
+with open(impact_rating_f, "rb") as impact_rating_fh:
+    impact_rating_df = pd.read_table(impact_rating_fh)
+    
 alt_freq_df = review_df[["CHROM", "POS","REF", "ALT", 'Alt Frequency']]
 alt_freq_df = alt_freq_df.fillna(value = {"Alt Frequency": -1})
 
@@ -189,11 +195,30 @@ for key in cleaned_tables_to_be_integrated:
 
 # determine the final score
 integrated_df = integrated_df.fillna(-1)
+# For all variants overlap with any published causal variant; 
+# that is, all in the matched table.
+integrated_df["matched_score"] = 1
+# 1, if passing the original QC
 integrated_df["qual_score"] = integrated_df["FILTER"].apply(
     lambda x: 1 if x == "PASS" else 0)
+# 1, if lower than the cutoff of 0.01 
+# as the variant is expected to be rare for the rare, inheritable disease
 integrated_df["freq_score"] = integrated_df["Alt Frequency"].apply(
     lambda x: 1 if x <= 0.01 else 0)
 integrated_df["integrated_score"] = integrated_df.apply(
     lambda row: row["qual_score"] * row["freq_score"] * row["consequence_score"],
     axis=1)
-integrated_df.sort_values(by="integrated_score", ascending=False)
+integrated_df = integrated_df.sort_values(by="integrated_score", ascending=False)
+
+# count p-value by randomization
+random.seed(1234)
+n = 10000
+sample = random.choices(
+    integrated_df["integrated_score"],
+    k=n)
+# The probability obtaining a higher score randomly
+integrated_df["p-val"] = integrated_df.apply(
+    lambda row: sum([float(s) >= row["integrated_score"] for s in sample])/n,
+    axis = 1)
+integrated_df["prob"] = integrated_df.apply(
+    lambda row: 1 - row["p-val"], axis=1)

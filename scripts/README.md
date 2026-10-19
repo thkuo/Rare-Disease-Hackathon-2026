@@ -45,5 +45,7 @@ python review_clnvar_matched.py
 
 # Result
 - clnvar_mva.bed: MVA causal variants listed in [ClnVar](https://www.ncbi.nlm.nih.gov/clinvar/search/?assembly=GRCh38&disease=mosaic%20variegated%20aneuploidy)
-- manual_review_clnvar_matched.xlsx: allele frequencies and genetic consequence per variant
+- manual_review_clnvar_matched_Data.txt: a table of allele frequencies and genetic consequence per variant
+- manual_review_clnvar_matched_Ensembl.txt: impact ratings from Ensembls
+- manual_review_clnvar_matched_Readme.txt: further details regarding the Data table
 - clnvar_mva_matched.bed: patient variants overlapped with the causal variants in the public data
