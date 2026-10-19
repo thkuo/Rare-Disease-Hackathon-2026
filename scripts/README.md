@@ -14,7 +14,8 @@ There is no match.
 
 2. Variant-oriented search using causal variants from ClinVar database
 
-    i. detect overlaps
+    i. detect overlaps with published causal variants
+    _NOTE: The method suggests a limitation in detecting novel causal variants_
 ```sh
 python refer_to_clnvar.py # generating clnvar_mva.bed 
 bedtools intersect -wa -wb \
@@ -23,6 +24,10 @@ bedtools intersect -wa -wb \
     > clnvar_mva_matched.bed
 ```
     ii. manually review the matched variants using public data (e.g., dbSNP)
+    iii. integrate results
+```sh
+python review_clnvar_matched.py
+```
 
 ## Scoring method
 
@@ -30,10 +35,10 @@ bedtools intersect -wa -wb \
   1, if QUAL == PASS
   0, otherwise
 - association score: overlap with published causal variants
-  n, if overlapping with n causal variants
+  1, if overlapping with any published causal variants
 - consequence score: how impactful is the variant
-  1, if any strong effect (e.g., stop codon) is labeled
-  .5, if no strong effect but any intermeidate effect (e.g., upstream) is labeled
+  1, strong severity (e.g., stop codon)
+  .5, moderate severity (e.g., upstream)
   0, otherwise
 - frequency score: whether the allele is rare
   1, if Alt allele frequency is <= 0.01
