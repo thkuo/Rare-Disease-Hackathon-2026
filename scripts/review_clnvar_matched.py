@@ -1,9 +1,8 @@
 # Review variants matched by ClnVar data
 import os
 import warnings
-import pandas as pd
-import re
 import random
+import pandas as pd
 
 os.chdir("scripts/")
 
@@ -36,75 +35,24 @@ with open(review_f, "rb") as review_fh:
     review_df = pd.read_table(review_fh, sep = "\t")
 # the impact rating from Ensembl
 impact_rating_f = "manual_review_clnvar_matched_Ensembl_impact_rating.txt"
-assert os.path.isfile(impact_rating_f)    
+assert os.path.isfile(impact_rating_f)
 impact_rating_df = pd.DataFrame()
 with open(impact_rating_f, "rb") as impact_rating_fh:
     impact_rating_df = pd.read_table(impact_rating_fh)
-    
+
 alt_freq_df = review_df[["CHROM", "POS","REF", "ALT", 'Alt Frequency']]
 alt_freq_df = alt_freq_df.fillna(value = {"Alt Frequency": -1})
 
 # layer 4: variant consequence
-vep_f = "../data/2026-10-14-10-02_VEP.tsv.gz"
+vep_f = "../data/2026-10-14-10-02_VEP.tsv"
 vep_df = pd.DataFrame()
-with open(vep_f, "rb") as vep_fh:
-   vep_df = pd.read_csv(vep_fh, compression="gzip", 
-                        header = 0, index_col = None, sep = "\t")
-   
+with open(vep_f, "r") as vep_fh:
+    vep_df = pd.read_csv(vep_fh,
+                         header=0, index_col=None, sep="\t")
+
 # expand the predicted effects
-def assign_consequence_score(impact_str: str=""):
-    match impact_str:
-        case "HIGH":
-            return 1.0
-        case "MODERATE":
-            return 0.5
-        case _:
-            return 0
-        
-class vep:
-    def __init__(self, vep_df):
-        self.raw_vep_df = vep_df
-        self.preprocessed_vep_df = pd.DataFrame()
-
-    def preprocess(self):
-        assert self.raw_vep_df is not None
-        vep_df = self.raw_vep_df
-        # seperate chromosome and position columns
-        vep_reformatted_loc_df = vep_df.apply(
-            lambda row: self.reformat_location(row), axis=1)
-        vep_df = pd.concat([vep_df, vep_reformatted_loc_df],
-                           axis = 1)
-
-        self.preprocessed_vep_df = vep_df
-        print("VEP table preprocessed")
-
-    def assign_consequence_score(self, impact_str: str=""):
-        return assign_consequence_score(impact_str)            
-
-    def reformat_location(self, row):
-        loc_elements = row["Location"].split(":")
-        try:
-            loc_elements = [int(l) for l in loc_elements]
-            return(pd.Series({"CHROM":loc_elements[0], "POS":loc_elements[1]}))
-        except ValueError as e:
-            print("unrecognized locational label")
-            print(e)
-            return(pd.Series({"CHROM":-1, "POS":-1}))
-
-    def make_consequence_scores_table(self):
-        assert self.preprocessed_vep_df is not None
-        vep_df = self.preprocessed_vep_df
-        # assign impact scores
-        vep_df["consequence_score"] = vep_df.apply(lambda row: self.assign_consequence_score(row["IMPACT"]), axis = 1)
-        vep_score_df = vep_df.sort_values(
-            by="consequence_score", ascending=False).drop_duplicates(
-                subset=["CHROM", "POS", "Ref", "Allele"], keep = "first")
-        
-        print(vep_score_df.columns)
-        vep_score_df = vep_score_df.rename(
-            columns={"Ref": "REF", "Allele": "ALT"})
-        return vep_score_df[["CHROM", "POS", "REF", "ALT", "SYMBOL",
-                            "Consequence", "IMPACT", "consequence_score"]]
+from Utils import vep
+from Utils import identify_representative_impact_of_manually_reviewed_var
 
 vep_obj = vep(vep_df)
 vep_obj.preprocess()
@@ -113,42 +61,8 @@ vep_consequence_df["Gene Consequence Pair"] = vep_consequence_df.apply(
     lambda row: row["SYMBOL"] + " : " + row["Consequence"], axis = 1)
 
 
-def identify_representative_impact_of_manually_reviewed_var(
-        impact_rating_df,review_df):
-    # First, create the mapping table
-    impact_mapping_df = impact_rating_df[["Display term", "IMPACT"]]
-    impact_mapping_df["consequence"] = impact_mapping_df.apply(
-        lambda row: row["Display term"].lower(), axis = 1)
-    impact_mapping_df["consequence_score"] = impact_mapping_df.apply(
-        lambda row: assign_consequence_score(row["IMPACT"]),
-        axis = 1)
-    # process those from manual review 
-    sub_review_df = review_df[
-        ["CHROM", "POS","REF", "ALT", "Gene and Consequence"]][
-            review_df["Gene and Consequence"].isna().apply( # exclude the missing ones
-                lambda x: not x)]
-    sub_review_df["Gene Consequence Pair"] = sub_review_df.apply(
-        lambda row: row["Gene and Consequence"].split("|"), axis = 1
-        )
-    # map the scores
-    exploded_sub_review_df = sub_review_df.explode("Gene Consequence Pair")
-    exploded_sub_review_df["consequence"] = exploded_sub_review_df.apply(
-        lambda row: re.search(": ([\w ]+)", row["Gene Consequence Pair"]).group(1).lower(),
-        axis = 1)
-    exploded_sub_review_df = exploded_sub_review_df.merge(
-        impact_mapping_df,
-        left_on = "consequence",
-        right_on = "consequence")
-    #  determine the representative by finding the most impactful one
-    review_consequence_df = exploded_sub_review_df.sort_values(
-        by="consequence_score", ascending=False).drop_duplicates(
-            subset=["CHROM", "POS", "REF", "ALT"], keep = "first")
-            
-    return review_consequence_df   
-   
-
 review_consequence_df = identify_representative_impact_of_manually_reviewed_var(
-    impact_rating_df, review_df)     
+    impact_rating_df, review_df)
 target_columns = ['CHROM', 'POS', 'REF', 'ALT',
                   'Gene Consequence Pair','IMPACT',
                   'consequence_score']
@@ -173,13 +87,15 @@ for key in tables_to_be_integrated:
     warnings.warn("Table {}: {}".format(key, "duplicate found"))
     cleaned_tables_to_be_integrated[key] = non_redundant_df
     try:
-        id_col_presence = all([x in tables_to_be_integrated[key].columns for x in id_cols])
+        id_col_presence = all(
+            [x in tables_to_be_integrated[key].columns
+             for x in id_cols])
         assert id_col_presence, "missing ID columns"
-        
+
     except AssertionError as e:
         id_col_check = False
         warnings.warn("Table {}: {}".format(key, e))
-    
+
 if id_col_check:
     print("Table check passed")
 
@@ -195,13 +111,13 @@ for key in cleaned_tables_to_be_integrated:
 
 # determine the final score
 integrated_df = integrated_df.fillna(-1)
-# For all variants overlap with any published causal variant; 
+# For all variants overlap with any published causal variant;
 # that is, all in the matched table.
 integrated_df["matched_score"] = 1
 # 1, if passing the original QC
 integrated_df["qual_score"] = integrated_df["FILTER"].apply(
     lambda x: 1 if x == "PASS" else 0)
-# 1, if lower than the cutoff of 0.01 
+# 1, if lower than the cutoff of 0.01
 # as the variant is expected to be rare for the rare, inheritable disease
 integrated_df["freq_score"] = integrated_df["Alt Frequency"].apply(
     lambda x: 1 if x <= 0.01 else 0)
