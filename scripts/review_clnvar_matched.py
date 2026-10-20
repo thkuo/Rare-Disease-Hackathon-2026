@@ -138,3 +138,8 @@ integrated_df["p-val"] = integrated_df.apply(
     axis = 1)
 integrated_df["prob"] = integrated_df.apply(
     lambda row: 1 - row["p-val"], axis=1)
+
+output_f = "draft_integrated_result.tsv"
+with open(output_f, "w") as output_fh:
+    integrated_df.to_csv(output_fh, index=False, sep="\t")
+assert (os.path.isfile(output_f)) & (os.path.getsize(output_f) > 0)
