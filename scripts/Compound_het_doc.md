@@ -21,3 +21,16 @@ fam_unknown     WGS_EX2312012   .       .       .       2
 
 The file `tmp_test.vcf` comtains additional variants as controls to assess the pipeline. The result suggest the
 same compound heterozygousity, so no false-possitive was found with the quick assessment.
+
+For the snpEFF annotated version, the match variants are filtered first:
+```sh
+slivar expr --vcf annotation_clnvar_matched.vcf \
+    --pass-only --info 'INFO.impactful && FILTER == "PASS" && s.het' \
+    -o annotation_clnvar_matched_filtered.vcf
+```
+Then, the compound heterozygous pairs are detected:
+```sh
+slivar compound-hets --allow-non-trios --ped tmp.ped.txt -v annotation_clnvar_matched_filtered.vcf > compound_het_annotation_clnvar_matched_filtered.vcf
+```
+
+Again, the result still suggest the same pair. 

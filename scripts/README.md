@@ -26,8 +26,12 @@ bedtools intersect -wa -wb \
     ii. annotate the variant consequence using snpEFF
 ```sh
 zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
-cut -f -10 clnvar_mva_matched.bed >> tmp.vcf
+cut -f -10 clnvar_mva_matched.bed | sed s/"//g >> tmp.vcf
 snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_clnvar_matched.vcf
+
+slivar expr --vcf  annotation_clnvar_matched.vcf --pass-only \
+    --info 'variant.FILTER == "PASS" && (variant.INFO.ANN[0].IMPACT == "HIGH" || variant.INFO.ANN[0].IMPACT == "MODERATE") && GT="0/1"' \
+    -o annotation_clnvar_matched_filtered.vcf
 ```
 
     iii. integrate results
