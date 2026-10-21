@@ -23,8 +23,12 @@ bedtools intersect -wa -wb \
     -b clnvar_mva.bed \
     > clnvar_mva_matched.bed
 ```
-    ii. manually review the matched variants by obtaining variant consequence, allele frequency from
-    public databases (e.g., dbSNP)
+    ii. annotate the variant consequence using snpEFF
+```sh
+zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
+cut -f -10 clnvar_mva_matched.bed >> tmp.vcf
+snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_clnvar_matched.vcf
+```
 
     iii. integrate results
 ```sh
