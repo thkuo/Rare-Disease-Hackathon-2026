@@ -23,16 +23,22 @@ bedtools intersect -wa -wb \
     -b clnvar_mva.bed \
     > clnvar_mva_matched.bed
 ```
-    ii. annotate the variant consequence using snpEFF
+    ii. annotate further information for the matched variants
+        a. add the variant consequence using snpEFF
 ```sh
 zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
 cut -f -10 clnvar_mva_matched.bed | sed s/"//g >> tmp.vcf
 snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_clnvar_matched.vcf
-
-slivar expr --vcf  annotation_clnvar_matched.vcf --pass-only \
-    --info 'variant.FILTER == "PASS" && (variant.INFO.ANN[0].IMPACT == "HIGH" || variant.INFO.ANN[0].IMPACT == "MODERATE") && GT="0/1"' \
-    -o annotation_clnvar_matched_filtered.vcf
 ```
+Then, consequence and impact attributes are extracted:
+```sh
+python retrieve_consequence.py
+```
+
+        b. check allele frequency by manual review
+        The population-wise allele frequency could vary by the sample size of each genetic study. Additionally, manual
+        review or curation could help identify potential inconsistencies or errors in the workflow. Therefore, this step
+        visits online databases, such as dbSNP and ClinVar, to aggregate allele frequency information for the variants.
 
     iii. integrate results
 ```sh
@@ -52,7 +58,20 @@ python review_clnvar_matched.py
   .5, moderate severity (e.g., upstream)
   0, otherwise
 ```
-    iv. format the output data
+    iv. identify putative compound heterozygosity
+
+```sh
+slivar expr --vcf  annotation_clnvar_matched.vcf --pass-only \
+    --info 'INFO.impactful && FILTER == "PASS" && s.het' \
+    -o annotation_clnvar_matched_filtered.vcf
+
+slivar compound-hets --allow-non-trios --ped tmp.ped.txt \
+    -v annotation_clnvar_matched_filtered.vcf \
+    > compound_het_annotation_clnvar_matched_filtered.vcf
+```
+The file `tmp.ped.txt` was manually made to describe the singleton (that is, only the patient instead of trios)
+
+    v. format the output data
 ```sh
 python format_result_for_submission.py
 ```

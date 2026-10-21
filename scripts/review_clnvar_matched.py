@@ -6,6 +6,7 @@ import pandas as pd
 
 os.chdir("scripts/")
 
+# Phase 1: load all tables
 # layer 1-2: QC and overlap with published MVA-relevant variants
 matched_var_f = "clnvar_mva_matched.bed"
 assert os.path.isfile(matched_var_f)
@@ -44,33 +45,14 @@ alt_freq_df = review_df[["CHROM", "POS","REF", "ALT", 'Alt Frequency']]
 alt_freq_df = alt_freq_df.fillna(value = {"Alt Frequency": -1})
 
 # layer 4: variant consequence
-vep_f = "../data/2026-10-14-10-02_VEP.tsv"
-vep_df = pd.DataFrame()
-with open(vep_f, "r") as vep_fh:
-    vep_df = pd.read_csv(vep_fh,
-                         header=0, index_col=None, sep="\t")
+consequence_tab_f = "consequence_clnvar_matched.txt"
+with open(consequence_tab_f, "r") as consequence_tab_fh:
+    consequence_df = pd.read_csv(consequence_tab_fh, header=0, sep="\t")
+consequence_scores_mapping_df = pd.DataFrame({"impact": ["HIGH", "MODERATE", "MODIFIER"],
+                                   "consequence_score": [1.0, 0.5, 0.0]})
+consequence_df = consequence_df.merge(consequence_scores_mapping_df, on="impact")
 
-# expand the predicted effects
-from Utils import vep
-from Utils import identify_representative_impact_of_manually_reviewed_var
-
-vep_obj = vep(vep_df)
-vep_obj.preprocess()
-vep_consequence_df = vep_obj.make_consequence_scores_table()
-vep_consequence_df["Gene Consequence Pair"] = vep_consequence_df.apply(
-    lambda row: row["SYMBOL"] + " : " + row["Consequence"], axis = 1)
-
-
-review_consequence_df = identify_representative_impact_of_manually_reviewed_var(
-    impact_rating_df, review_df)
-target_columns = ['CHROM', 'POS', 'REF', 'ALT',
-                  'Gene Consequence Pair','IMPACT',
-                  'consequence_score']
-consequence_df = pd.concat(
-    [vep_consequence_df[target_columns],
-    review_consequence_df[target_columns]], ignore_index=True)
-
-# Integrate the tables
+# Pase 2: Integrate the tables
 id_cols = ["CHROM", "POS","REF", "ALT"]
 tables_to_be_integrated = {
     "QC": qual_df,
@@ -84,7 +66,8 @@ for key in tables_to_be_integrated:
         subset = id_cols)
     # ensure non-redundant data
     all_unique = len(tables_to_be_integrated[key]) == len(non_redundant_df)
-    warnings.warn("Table {}: {}".format(key, "duplicate found"))
+    if not all_unique:
+        warnings.warn("Table {}: {}".format(key, "duplicate found"))
     cleaned_tables_to_be_integrated[key] = non_redundant_df
     try:
         id_col_presence = all(
@@ -97,7 +80,7 @@ for key in tables_to_be_integrated:
         warnings.warn("Table {}: {}".format(key, e))
 
 if id_col_check:
-    print("Table check passed")
+    print("Tables evaluation passed")
 
 integrated_df = pd.DataFrame()
 for key in cleaned_tables_to_be_integrated:
@@ -109,6 +92,7 @@ for key in cleaned_tables_to_be_integrated:
             how = "outer", on=id_cols)
     print(integrated_df.shape)
 
+# Phase 3: Rate the variants
 # determine the final score
 integrated_df = integrated_df.fillna(-1)
 # For all variants overlap with any published causal variant;
@@ -139,7 +123,7 @@ integrated_df["p-val"] = integrated_df.apply(
 integrated_df["prob"] = integrated_df.apply(
     lambda row: 1 - row["p-val"], axis=1)
 
-output_f = "draft_integrated_result.tsv"
+output_f = "draft_integrated_result_v2.tsv"
 with open(output_f, "w") as output_fh:
     integrated_df.to_csv(output_fh, index=False, sep="\t")
 assert (os.path.isfile(output_f)) & (os.path.getsize(output_f) > 0)
