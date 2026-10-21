@@ -8,6 +8,7 @@
 - The other dependencies can be installed by setting up the conda environment:
 ```sh
 conda env create -f ../mva_hackackthon.json
+conda env create -f ../mva_hackackthon_genetics.json
 conda activate mva_hackthon
 ```
 
@@ -16,12 +17,21 @@ conda activate mva_hackthon
 The rule-based workflow aims to identify causal variants using public information and the precomputed VCF file. The procedures include:
 
     i. detect overlaps with published causal variants
+    First, generate the bed file `clnvar_mva.bed` that contains MVA-associated variants downloaded from ClinVar. The
+    search key word in ClinVar was [mosaic variegated aneuploidy](https://www.ncbi.nlm.nih.gov/clinvar/search/?assembly=GRCh38&disease=mosaic%20variegated%20aneuploidy).
 ```sh
-python refer_to_clnvar.py # generating clnvar_mva.bed 
+conda activate mva_hackathon
+python refer_to_clnvar.py 
+conda deactivate
+```
+    Then, the file can be used to filter the patient's VCF data and identify variants overlapping or identicle with well-studied causal variants. 
+```sh
+conda activate mva_hackathon_genetics
 bedtools intersect -wa -wb \
     -a ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
     -b clnvar_mva.bed \
     > clnvar_mva_matched.bed
+conda deactivate
 ```
     ii. annotate further information for the matched variants
         a. add the variant consequence using snpEFF
@@ -61,9 +71,8 @@ python review_clnvar_matched.py
     iv. identify putative compound heterozygosity
 
 ```sh
-slivar expr --vcf  annotation_clnvar_matched.vcf --pass-only \
-    --info 'INFO.impactful && FILTER == "PASS" && s.het' \
-    -o annotation_clnvar_matched_filtered.vcf
+slivar expr --vcf annotation_clnvar_matched.vcf --pass-only \
+    --info 'INFO.impactful && FILTER == "PASS" && s.het' | uniq > annotation_clnvar_matched_filtered.vcf
 
 slivar compound-hets --allow-non-trios --ped tmp.ped.txt \
     -v annotation_clnvar_matched_filtered.vcf \
