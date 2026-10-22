@@ -2,9 +2,26 @@ import os
 import requests
 import warnings
 import time
+import re
 import pandas as pd
+from tqdm import tqdm
 
 os.chdir("dev/marker_gene_regions/")
+tqdm.pandas()
+
+def read_vcf(marker_hit_vcf_f: str):
+    marker_hit_vcf_df = pd.DataFrame()
+    with open(marker_hit_vcf_f, "r") as marker_hit_vcf_fh:
+        # The default reading function accepts only one character 
+        # as the comment sign, so additional processing is needed here
+        vcf_content = [l.strip() for l in marker_hit_vcf_fh.readlines()
+                       if re.match("##", l) is None]
+        vcf_content_tab = [row_string.split("\t") for row_string in vcf_content]
+        marker_hit_vcf_df = pd.DataFrame(vcf_content_tab[1:],
+                                      columns=vcf_content_tab[0])
+        marker_hit_vcf_df = marker_hit_vcf_df.rename(columns = {"#CHROM":"CHROM"})
+        
+    return marker_hit_vcf_df
 
 def query_gnomad(chrom, pos, ref, alt):
     # refer to https://discuss.gnomad.broadinstitute.org/t/blocked-when-using-api-to-get-af/149/2
@@ -58,23 +75,14 @@ def identify_af(chrom, pos, ref, alt):
             print(fetch_response)
             print(e)
             return -1
-    
-# out = query_gnomad(15, 40209701, "T", "G")
-# fp_out = query_gnomad(15, 40209702, "T", "G")
 
-# load previous table of manual review
-review_f = "../../scripts/manual_review_clnvar_matched_Data.txt"
-assert os.path.isfile(review_f)
-review_df = pd.DataFrame()
-with open(review_f, "rb") as review_fh:
-    review_df = pd.read_table(review_fh, sep = "\t")
-    
-    
-identify_af(int(review_df.loc[0, "CHROM"]),
-            int(review_df.loc[0, "POS"]),
-            str(review_df.loc[0, "REF"]),
-            str(review_df.loc[0, "ALT"]))
-review_df.apply(
-    lambda row: identify_af(int(row["CHROM"]), int(row["POS"]),
-                            str(row["REF"]), str(row["ALT"])),
+marker_hit_vcf_df = read_vcf("annotation_marker_genes_hit.vcf")
+af_series = marker_hit_vcf_df.progress_apply(lambda row: identify_af(
+    int(row["CHROM"]), int(row["POS"]), str(row["REF"]), str(row["ALT"])),
     axis=1)
+af_series = af_series.rename("AF")
+out_df = pd.concat([marker_hit_vcf_df[["CHROM", "POS", "REF", "ALT"]],
+                    af_series], axis=1)
+out_f = "af_marker_genes_hit.txt"
+with open (out_f, "w") as out_fh:
+    out_df.to_csv(out_fh, header=True, index=None, sep = "\t")
