@@ -17,3 +17,10 @@ _NOTE: the coordinates in gff3 are 1-based, but that of the starting site in bed
 ```sh
 awk '{print $1"\t"$4-1"\t"$5"\t"$9}' marker_genes.gff3 > marker_genes.bed
 ```
+
+The same method like the causal genes are applied again:
+```sh
+zcat ../../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
+cut -f -10 marker_genes_hit.bed | sed s/\"//g >> tmp.vcf
+snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_marker_genes_hit.vcf
+```
