@@ -24,3 +24,15 @@ zcat ../../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
 cut -f -10 marker_genes_hit.bed | sed s/\"//g >> tmp.vcf
 snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_marker_genes_hit.vcf
 ```
+, followed by compound heterozyosity detection:
+
+```sh
+slivar expr --vcf annotation_marker_genes_hit.vcf --pass-only \
+    --info 'INFO.impactful && FILTER == "PASS" && s.het' | uniq > annotation_marker_genes_hit_filtered.vcf
+
+slivar compound-hets --allow-non-trios --ped ../../scripts/tmp.ped.txt \
+    -v annotation_marker_genes_hit_filtered.vcf \
+    > compound_het_annotation_marker_genes_hit_filtered.vcf
+```
+
+
