@@ -4,7 +4,7 @@ Stage 1 has collected coordinates of published association between the disease a
 
 ## Genetic overlap counting
 
-First, the bed file from Stage 1 enables filtering the patient's VCF file to identify variants overlapping with published causal variants. The method is shown below:
+First, the bed file from Stage 1 enables filtering the patient's VCF file to identify variants overlapping with published MVA-associated variants or genes. The method is shown below:
 
 ```sh
 conda activate mva_hackathon
@@ -22,9 +22,11 @@ consequences and population observations to add layers to the causal variant ide
 The workflow described below annotates consequence information for the overlapped variants (that is, those identified from the above step) using snpEFF based on GRCh38p14:
 
 ```sh
+conda activate mva_hackathon_genetics
 zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
 cut -f -10 [variant|gene]_overlapped.bed| sed s/\"//g >> tmp.vcf
 snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_[variant|gene]_overlapped.vcf
+conda deactivate
 ```
 Please note that the method focuses on canonical sequences. Investigation into isoforms can be the next direction of causal variation identification. 
 
@@ -52,10 +54,12 @@ For details about the query, please check scripts/GnomadUtils.
 Compound heterozygosity includes variants from different chromosomes of the same genetic region. The analysis usually requires trios data (that is, parents and the patient) to investigate the source of specific genetic features. Alternatively, long-read sequencing is also conducive to determining whether variants in the same gene are located on the opposite chromosome of the chromosomal pair. However, as both are unavailable in this study, population-based analysis is conducted, as shown below:
 
 ```sh
+conda activate mva_hackathon_genetics
 slivar expr --vcf annotation_marker_genes_hit.vcf --pass-only \
     --info 'INFO.impactful && FILTER == "PASS" && s.het' | uniq > annotation_[variant|gene]_overlapped_filtered.vcf
 
 slivar compound-hets --allow-non-trios --ped ../../scripts/tmp.ped.txt \
     -v annotation_marker_genes_hit_filtered.vcf \
     > compound_het_annotation_[variant|gene]_overlapped_filtered.vcf
+conda deactivate
 ```

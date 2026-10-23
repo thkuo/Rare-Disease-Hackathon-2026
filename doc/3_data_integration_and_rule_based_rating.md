@@ -1,6 +1,6 @@
 # 3. Data integration and rule-based rating
 
-Throughout previous stages, the variation consequence and allele frequency data have become available. Overlaps between the patient's variants and published MVA-associated variants or genes are also identified. Furthermore, the original VCF file includes quality information. In this stage, the information will be integrated to score variants. 
+Throughout previous stages, the variation consequence and allele frequency data have become available. Overlaps between the patient's variants and published MVA-associated variants or genes are also identified. Furthermore, the original VCF file includes quality information. In this stage, various information will be integrated to score variants. 
 
 Steps of this stage are explained below with Python scripts. 
 
