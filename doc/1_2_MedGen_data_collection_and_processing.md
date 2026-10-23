@@ -1,4 +1,5 @@
-# 1.2 MedGen data collection and processing
+# 1 Knolwedge base preparation
+## MedGen data collection and processing
 
 MedGen is a database harboring medical genetics. MVA-associated genes are identified in the webpages below:
 - type 1-3: https://www.ncbi.nlm.nih.gov/medgen/1641418
