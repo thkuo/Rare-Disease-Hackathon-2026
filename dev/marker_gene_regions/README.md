@@ -19,6 +19,11 @@ awk '{print $1"\t"$4-1"\t"$5"\t"$9}' marker_genes.gff3 > marker_genes.bed
 ```
 
 The same method like the causal genes are applied again:
+First, find the overlapped variants:
+```sh
+bedtools intersect -wa -wb -a ../../data/WGS_EX2312012_HGWCNDSX7.vcf.gz -b ./marker_genes.bed > marker_genes_hit.bed
+```
+Then, annotate their genetic consequence:
 ```sh
 zcat ../../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
 cut -f -10 marker_genes_hit.bed | sed s/\"//g >> tmp.vcf
