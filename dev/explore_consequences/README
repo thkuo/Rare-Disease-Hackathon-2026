@@ -1,0 +1,2 @@
+The majority of variants in the full VCF are irrelevant to the disease, 
+so annotating the full file wastes resources. 
