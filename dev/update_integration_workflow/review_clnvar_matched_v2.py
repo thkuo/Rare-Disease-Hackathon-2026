@@ -35,7 +35,7 @@ count_df = matched_var_df.groupby(by=["CHROM", "POS", "REF", "ALT"]).size().rese
 alt_freq_df = pd.DataFrame()
 with open(alt_freq_f, "r") as alt_freq_fh:
     alt_freq_df = pd.read_csv(alt_freq_fh,
-                                 header = None,
+                                 header = 0,
                                  delimiter="\t",
                                  index_col = None)
 
@@ -50,6 +50,7 @@ consequence_df = consequence_df.merge(consequence_scores_mapping_df, on="impact"
 id_cols = ["CHROM", "POS","REF", "ALT"]
 tables_to_be_integrated = {
     "QC": qual_df,
+    "count": count_df,
     "alt_freq": alt_freq_df,
     "consequence": consequence_df}
 # ensure id columns
