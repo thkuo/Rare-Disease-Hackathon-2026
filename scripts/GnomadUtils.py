@@ -2,7 +2,10 @@ import requests
 import time
 import warnings
 import pandas as pd
-from FileUtils import read_vcf
+from tqdm import tqdm
+from scripts import FileUtils
+
+tqdm.pandas()
 
 def query_gnomad(chrom, pos, ref, alt):
     # refer to https://discuss.gnomad.broadinstitute.org/t/blocked-when-using-api-to-get-af/149/2
@@ -58,7 +61,7 @@ def identify_af(chrom, pos, ref, alt):
             return -1
 
 def make_af_table(vcf_f: str, out_f: str=None):
-    vcf_df = read_vcf(vcf_f)
+    vcf_df = FileUtils.read_vcf(vcf_f)
     af_series = vcf_df.progress_apply(lambda row: identify_af(
         int(row["CHROM"]), int(row["POS"]), str(row["REF"]), str(row["ALT"])),
         axis=1)
