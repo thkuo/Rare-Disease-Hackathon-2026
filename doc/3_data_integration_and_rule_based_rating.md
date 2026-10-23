@@ -20,7 +20,7 @@ matched_var_f = "VG_overlapped.txt"
 alt_freq_f = "af_VG_overlapped.txt"
 consequence_tab_f = "consequence_VG_overlapped.txt"
 # output data
-output_f = "draft_integrated_result_v3.tsv"
+output_f = "draft_integrated_result.tsv"
 
 # Phase 1: load all tables
 # layer 1-2: QC and overlap with published MVA-relevant variants

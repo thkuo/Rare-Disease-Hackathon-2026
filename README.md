@@ -23,7 +23,7 @@ This stage focuses on bioinformatic analysis to aggregate information for identi
 
 In addition, compound heterozugosity is checked among high-quality, impactful, heterozygous variants using slivar. 
 
-3. Data transformation and rule-based rating
+3. Data integration and rule-based rating
 
 Meta-data are parsed from outputs of computational tools mentioned above, followed by re-formatting into analysis-friendly tabular data. With the information, 4 scores are computed for each hit variant: (1) The Quality Score, determined by the FILTER value in the VCF file, represents the confidence of this signal. (2) The Association Score is determined by the number of overlapps with MVA-associated variants or genes, which suggests strength of linkage with sophisticated data. (3) The Frequency Score categorizes variants based on whether their rarity (cutoff: 0.01), which provides an epidemiological view on putative molecular causes to the rare disease. (4) The Consequence Score is determined based on severity of the annotated consequence, which indicates the molecular pathogenecity.
 
