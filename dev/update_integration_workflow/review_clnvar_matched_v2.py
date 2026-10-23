@@ -6,9 +6,9 @@ import pandas as pd
 
 os.getcwd()
 # input data
-matched_var_f = "scripts/clnvar_mva_matched.bed"
-alt_freq_f = "scripts/test_af/test_af_test.txt"
-consequence_tab_f = "scripts/consequence_clnvar_matched.txt"
+matched_var_f = "dev/update_integration_workflow/VG_overlapped.txt"
+alt_freq_f = "dev/update_integration_workflow/af_VG_overlapped.txt"
+consequence_tab_f = "dev/update_integration_workflow/consequence_VG_overlapped.txt"
 # output data
 output_f = "dev/update_integration_workflow/draft_integrated_result_v3.tsv"
 
@@ -26,7 +26,7 @@ vcf_col=["CHROM", "POS","ID","REF",
          "ALT","QUAL","FILTER","INFO",
          "FORMAT","WGS_EX2312012"]
 bed_col = ["GRCh38Chromosome", "start",
-           "end", "Canonical SPDI"]
+           "end", "name"]
 matched_var_df.columns = vcf_col + bed_col
 
 # extract the quality table
