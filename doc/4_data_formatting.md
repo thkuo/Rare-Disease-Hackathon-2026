@@ -1,9 +1,9 @@
 # 4. Data formatting
 
-Variants are prioritized through previous steps. This stage will further include compound heterozygosity information to
+Previous stages have prioritized variants. This stage will further include compound heterozygosity information to
 prepare the table for submission.
 
-In this block, `integrated_results_f` comes from the previous step, which includes prioritized variants and their scores. The comp-het data (`comphet_tab_f`) is a concatenated table of variant and gene-based detection of comp-het using the method in Stage 2. 
+In this block, `integrated_results_f` comes from the previous step, which includes prioritized variants and their scores. The comp-het data (`comphet_tab_f`) is a concatenated table of variant- and gene-based detection of comp-het using the method in Stage 2. 
 
 ```py
 import os

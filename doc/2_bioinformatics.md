@@ -1,6 +1,6 @@
 # 2. Bioinformatic meta-analysis
 
-Stge 1 has collected coordinates of published association between the disease and genetic features (i.e., variant or gene). In this stage, bioinformatic tools are deployed to map prior knowledge to the patient's data to identify putative causes to MVA. The workflow below includes bash and Python scripts relevant to the analysis. 
+Stage 1 has collected coordinates of published association between the disease and genetic features (i.e., variant or gene). Consequently, this stage deploys bioinformatic tools to map prior knowledge to the patient's data to identify putative causes of MVA. The workflow below includes bash and Python scripts relevant to the analysis. 
 
 ## Genetic overlap counting
 
@@ -16,10 +16,10 @@ conda deactivate
 ```
 
 ## Consequence analysis
-As molecular causes to inheritable rare diseases are usually impactful but rare, the next steps will focus on genetic
+As molecular causes of inheritable rare diseases are usually impactful but rare, the next steps will focus on genetic
 consequences and population observations to add layers to the causal variant identification. 
-The workflow annotates consequence information for the overlapped variants (that is, those identified from the above
-step) using snpEFF based on GRCh38p14:
+
+The workflow described below annotates consequence information for the overlapped variants (that is, those identified from the above step) using snpEFF based on GRCh38p14:
 
 ```sh
 zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
@@ -49,7 +49,7 @@ For details about the query, please check scripts/GnomadUtils.
 
 ## Compound heterozygosity identification
 
-Compound heterozygosity includes variants from different chromosomes of the same genetic region. It  usually requires trios data (that is, parents and the patient) to investigate genetic feature sources. Alternatively, long-read sequencing is also conducive in determining whether variants in the same gene are located at the opposite chromosome of the chromosomal pair. However, as both are unavailable in this study, population-based analysis is conducted, as shown below:
+Compound heterozygosity includes variants from different chromosomes of the same genetic region. The analysis usually requires trios data (that is, parents and the patient) to investigate the source of specific genetic features. Alternatively, long-read sequencing is also conducive to determining whether variants in the same gene are located on the opposite chromosome of the chromosomal pair. However, as both are unavailable in this study, population-based analysis is conducted, as shown below:
 
 ```sh
 slivar expr --vcf annotation_marker_genes_hit.vcf --pass-only \
