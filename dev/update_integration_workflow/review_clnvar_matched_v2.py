@@ -9,6 +9,8 @@ os.getcwd()
 matched_var_f = "scripts/clnvar_mva_matched.bed"
 alt_freq_f = "scripts/test_af/test_af_test.txt"
 consequence_tab_f = "scripts/consequence_clnvar_matched.txt"
+# output data
+output_f = "dev/update_integration_workflow/draft_integrated_result_v3.tsv"
 
 # Phase 1: load all tables
 # layer 1-2: QC and overlap with published MVA-relevant variants
@@ -90,22 +92,24 @@ for key in cleaned_tables_to_be_integrated:
 # Phase 3: Rate the variants
 # determine the final score
 integrated_df = integrated_df.fillna(-1)
-# For all variants overlap with any published causal variant;
-# that is, all in the matched table.
-integrated_df["matched_score"] = 1
+# # For all variants overlap with any published causal variant;
+# # that is, all in the matched table.
+# integrated_df["matched_score"] = 1
+# the score is no longer binary but the number of overlapped reference loci
+integrated_df["matched_score"] = integrated_df["count"]
 # 1, if passing the original QC
 integrated_df["qual_score"] = integrated_df["FILTER"].apply(
     lambda x: 1 if x == "PASS" else 0)
 # 1, if lower than the cutoff of 0.01
 # as the variant is expected to be rare for the rare, inheritable disease
-integrated_df["freq_score"] = integrated_df["Alt Frequency"].apply(
+integrated_df["freq_score"] = integrated_df["AF"].apply(
     lambda x: 1 if x <= 0.01 else 0)
 integrated_df["integrated_score"] = integrated_df.apply(
-    lambda row: row["qual_score"] * row["freq_score"] * row["consequence_score"],
+    lambda row: row["matched_score"] * row["qual_score"] * row["freq_score"] * row["consequence_score"],
     axis=1)
 integrated_df = integrated_df.sort_values(by="integrated_score", ascending=False)
 
-# count p-value by randomization
+# count p-value by bootstrapping
 random.seed(1234)
 n = 10000
 sample = random.choices(
@@ -118,7 +122,6 @@ integrated_df["p-val"] = integrated_df.apply(
 integrated_df["prob"] = integrated_df.apply(
     lambda row: 1 - row["p-val"], axis=1)
 
-output_f = "draft_integrated_result_v2.tsv"
 with open(output_f, "w") as output_fh:
     integrated_df.to_csv(output_fh, index=False, sep="\t")
 assert (os.path.isfile(output_f)) & (os.path.getsize(output_f) > 0)
