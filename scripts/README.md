@@ -71,12 +71,15 @@ python review_clnvar_matched.py
     iv. identify putative compound heterozygosity
 
 ```sh
+# filter variants to focus on high-quality, impactful variants
 slivar expr --vcf annotation_clnvar_matched.vcf --pass-only \
     --info 'INFO.impactful && FILTER == "PASS" && s.het' | uniq > annotation_clnvar_matched_filtered.vcf
-
+# identify compound het
 slivar compound-hets --allow-non-trios --ped tmp.ped.txt \
     -v annotation_clnvar_matched_filtered.vcf \
     > compound_het_annotation_clnvar_matched_filtered.vcf
+# extract the compound heterozygosity information and format them into a table    
+python retrieve_comphet_pair.py 
 ```
 The file `tmp.ped.txt` was manually made to describe the singleton (that is, only the patient instead of trios)
 
