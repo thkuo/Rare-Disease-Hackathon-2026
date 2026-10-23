@@ -26,7 +26,7 @@ conda deactivate
 ```
     Then, the file can be used to filter the patient's VCF data and identify variants overlapping or identicle with well-studied causal variants. 
 ```sh
-conda activate mva_hackathon_genetics
+conda activate mva_hackathon
 bedtools intersect -wa -wb \
     -a ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz \
     -b clnvar_mva.bed \
@@ -37,7 +37,7 @@ conda deactivate
         a. add the variant consequence using snpEFF
 ```sh
 zcat ../data/WGS_EX2312012_HGWCNDSX7.vcf.gz | grep '#' > tmp.vcf
-cut -f -10 clnvar_mva_matched.bed | sed s/"//g >> tmp.vcf
+cut -f -10 clnvar_mva_matched.bed | sed s/\"//g >> tmp.vcf
 snpEff ann -Xmx4g -canon -v GRCh38.p14 -o vcf tmp.vcf > annotation_clnvar_matched.vcf
 ```
 Then, consequence and impact attributes are extracted:
