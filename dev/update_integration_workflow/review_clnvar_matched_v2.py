@@ -4,11 +4,13 @@ import warnings
 import random
 import pandas as pd
 
-os.chdir("scripts/")
+os.getcwd()
+# input data
+matched_var_f = "scripts/clnvar_mva_matched.bed"
+alt_freq_f = "scripts/test_af/test_af_test.txt"
 
 # Phase 1: load all tables
 # layer 1-2: QC and overlap with published MVA-relevant variants
-matched_var_f = "clnvar_mva_matched.bed"
 assert os.path.isfile(matched_var_f)
 matched_var_df = pd.DataFrame()
 with open(matched_var_f, "r") as matched_var_fh:
@@ -28,21 +30,12 @@ matched_var_df.columns = vcf_col + bed_col
 qual_df = matched_var_df[["CHROM", "POS", "REF", "ALT", "FILTER"]]
 
 # layer 3: allele frequnecy
-# load the manual review table
-review_f = "manual_review_clnvar_matched_Data.txt"
-assert os.path.isfile(review_f)
-review_df = pd.DataFrame()
-with open(review_f, "rb") as review_fh:
-    review_df = pd.read_table(review_fh, sep = "\t")
-# the impact rating from Ensembl
-impact_rating_f = "manual_review_clnvar_matched_Ensembl_impact_rating.txt"
-assert os.path.isfile(impact_rating_f)
-impact_rating_df = pd.DataFrame()
-with open(impact_rating_f, "rb") as impact_rating_fh:
-    impact_rating_df = pd.read_table(impact_rating_fh)
-
-alt_freq_df = review_df[["CHROM", "POS","REF", "ALT", 'Alt Frequency']]
-alt_freq_df = alt_freq_df.fillna(value = {"Alt Frequency": -1})
+alt_freq_df = pd.DataFrame()
+with open(alt_freq_f, "r") as alt_freq_fh:
+    alt_freq_df = pd.read_csv(alt_freq_fh,
+                                 header = None,
+                                 delimiter="\t",
+                                 index_col = None)
 
 # layer 4: variant consequence
 consequence_tab_f = "consequence_clnvar_matched.txt"
