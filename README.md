@@ -5,9 +5,9 @@ The files `mva_hackathon.json` and `mva_hackathon_genetics.json` are conda envir
 
 ## Repository structure
 ```console
-|-data/ external data from the event organizer or public database
-|-scripts/ methods for identifying causal variants
-|-dev/ prototypes of methods
+./
+|- scripts/ functions used in the workflow identifying causal variants
+|- doc/ documentaion of the workflow
 ```
 
 ## Method Overview
@@ -15,13 +15,15 @@ The files `mva_hackathon.json` and `mva_hackathon_genetics.json` are conda envir
 The rule-based workflow includes 4 stages. 
 1. Knowledge base formation
 
-This stage includes gathering of variant-level and gene-level association with MVA. For variant-level information, MVA-associated variants are identified and downloaded from ClinVar. For gene-level data, MVA-associated genes are identified from MedGen. _hyperlink to detailed doc_
+This stage includes gathering of variant-level and gene-level association with MVA. For variant-level information, MVA-associated variants are identified and downloaded from ClinVar ([details](doc/1_1_ClinVar_data_collection_and_processing.md)). For gene-level data, MVA-associated genes are identified from MedGen ([details](doc/1_2_MedGen_data_collection_and_processing.md)).
 
 2. Bioinformatic meta-analysis
 
 This stage focuses on bioinformatic analysis to aggregate information for identifying putative causal variants. First, the intersect between the patient's variants (that is, the VCF file provided by the organizer) and MVA-associated variants or genes is computed using bedtools. For each overlapped variant (or hit variant), the number of variant-level or gene-level overlapps are counted. Then, genetic consequences (e.g., missense) are annotaed using snpeff with based on human genome GRCh38p14. Furthermore, alternate allele frequencies of overlapped variants are identified using GnomAD GraphicAPI.
 
 In addition, compound heterozugosity is checked among high-quality, impactful, heterozygous variants using slivar. 
+
+[More details are available in doc/](doc/2_bioinformatics.md).
 
 3. Data integration and rule-based rating
 
@@ -32,9 +34,12 @@ The integrated score is the product of the 4 sub-scores. Then, for each hit vari
 
 Variants with a probability of 0, whcih are usually those with an integrated score of 0, are filtered. For the rest, their sub-scores and the probiblity are then formatted into a table.
 
+[More details are available in doc/](doc/3_data_integration_and_rule_based_rating.md).
+
 4. Data formatting
 
 Compound heterozygosity (comp-het) information is added to the integrated score table. As the integrated table keeps variants forming comp-het in 2 rows, redundanty rows are then dropped after comp-het data is appended to the table.  
+[More details are available in doc/](doc/4_data_formatting.md)
 
 ## Author
-- Tzu-Hao Kuo (thkuo) [GitHub Profile](https://github.com/thkuo)
+- Tzu-Hao Kuo (thkuo)
