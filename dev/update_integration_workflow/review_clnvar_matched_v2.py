@@ -8,6 +8,7 @@ os.getcwd()
 # input data
 matched_var_f = "scripts/clnvar_mva_matched.bed"
 alt_freq_f = "scripts/test_af/test_af_test.txt"
+consequence_tab_f = "scripts/consequence_clnvar_matched.txt"
 
 # Phase 1: load all tables
 # layer 1-2: QC and overlap with published MVA-relevant variants
@@ -28,6 +29,7 @@ matched_var_df.columns = vcf_col + bed_col
 
 # extract the quality table
 qual_df = matched_var_df[["CHROM", "POS", "REF", "ALT", "FILTER"]]
+count_df = matched_var_df.groupby(by=["CHROM", "POS", "REF", "ALT"]).size().reset_index(name="count")
 
 # layer 3: allele frequnecy
 alt_freq_df = pd.DataFrame()
@@ -38,14 +40,13 @@ with open(alt_freq_f, "r") as alt_freq_fh:
                                  index_col = None)
 
 # layer 4: variant consequence
-consequence_tab_f = "consequence_clnvar_matched.txt"
 with open(consequence_tab_f, "r") as consequence_tab_fh:
     consequence_df = pd.read_csv(consequence_tab_fh, header=0, sep="\t")
 consequence_scores_mapping_df = pd.DataFrame({"impact": ["HIGH", "MODERATE", "MODIFIER"],
                                    "consequence_score": [1.0, 0.5, 0.0]})
 consequence_df = consequence_df.merge(consequence_scores_mapping_df, on="impact")
 
-# Pase 2: Integrate the tables
+# Phase 2: Integrate the tables
 id_cols = ["CHROM", "POS","REF", "ALT"]
 tables_to_be_integrated = {
     "QC": qual_df,
