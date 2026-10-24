@@ -32,7 +32,7 @@ Please note that the method focuses on canonical sequences. Investigation into i
 
 ## Allele frequency
 
-Allele frequencies are retrieved from GnomAD, which aggregates large-scaled sequencing projects, using the official GraphicAPI. Below is the Python method to fetch the database with a VCF file:
+Allele frequencies are retrieved from GnomAD, which aggregates large-scaled sequencing projects, using the GraphicQL API. Below is the Python method to fetch the database with a VCF file:
 
 ```py
 import os
