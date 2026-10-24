@@ -28,19 +28,17 @@ The files `mva_hackathon.json` and `mva_hackathon_genetics.json` are conda envir
 
 The rule-based workflow identifies putatively causal variants for the patient with 4 stages. 
 
-1. Knowledge Base Preparation 
+1. Knowledge Base Preparation ([doc](doc/1_knowledge_base_prep.md))
 
-This stage includes gathering data regarding variant-level and gene-level association with MVA from public databases. For variant-level information ([details](doc/1_1_ClinVar_data_collection_and_processing.md)), MVA-associated variants are identified and downloaded from ClinVar. For gene-level data ([details](doc/1_2_MedGen_data_collection_and_processing.md)), MVA-associated genes are identified from MedGen. Sequential position of MVA-associated genes are then extracted from human genome GRCh38p14. 
+This stage includes gathering data regarding variant-level and gene-level association with MVA from public databases. For variant-level information, MVA-associated variants are identified and downloaded from ClinVar. For gene-level data, MVA-associated genes are identified from MedGen. Sequential position of MVA-associated genes are then extracted from human genome GRCh38p14. 
 
-2. Bioinformatic Analysis
+2. Bioinformatic Analysis ([doc](doc/2_bioinformatics.md))
 
 This stage focuses on bioinformatic analyses to aggregate evidence for identifying putative causal variants. First, the intersect between the patient's variants (that is, the VCF file provided by the organizer) and MVA-associated variants or genes is computed using bedtools. For each overlapped variant (or hit variant), the number of variant-level or gene-level overlapps are counted. Then, genetic consequences (e.g., missense) are annotaed using snpeff based on human genome GRCh38p14. Alternate allele frequencies of overlapped variants are identified using GnomAD GraphicQL API.
 
 This workflow also investigates compound heterozygosity (comp-het), which is a pair of influential variants at the same locus inherited from different sources. The overlapped variants are first filtered based on their qualities and genetic impacts using 'slivar expr'. Then, putative comp-hets are investigated among filtered variants of the singleton (i.e., no trios) using 'slivar compound-hets'.
 
-[Details](doc/2_bioinformatics.md)
-
-3. Data Integration and Rule-Based Rating
+3. Data Integration and Rule-Based Rating ([doc](doc/3_data_integration_and_rule_based_rating.md))
 
 Meta-data are parsed from outputs of computational tools mentioned above, followed by re-formatting into analysis-friendly tabular data. With the information, 4 scores are computed for each hit variant: (1) The Quality Score, determined by the FILTER value in the VCF file, represents the confidence of this signal. (2) The Association Score is determined by the number of overlapps with MVA-associated variants or genes, which suggests strength of linkage with sophisticated data. (3) The Frequency Score categorizes variants based on whether their rarity (cutoff: 0.01), which provides an epidemiological view on putative molecular causes to the rare disease. (4) The Consequence Score is determined based on severity of the annotated consequence, which indicates the molecular pathogenecity.
 
@@ -48,15 +46,12 @@ The integrated score is the product of the 4 sub-scores. Then, for each hit vari
 
 The sub-scores and probiblity are then formatted into a table.
 
-[Details](doc/3_data_integration_and_rule_based_rating.md)
 
-4. Submission Data Formatting
+4. Submission Data Formatting ([doc](doc/4_data_formatting.md))
 
 Compound heterozygosity (comp-het) information is added to the table in this stage. For variants in compound heterozygosity, the representative row will be determined based on the probability: the one with a higher probability is kept as the representative, and the other (that is, the one with a lower probability) is consequently excluded from the table to remove redundancy in the data. Then, this stage sets a probability cutoff of 0 to keep only putative candidates as 'primary' discoveries. 
 
-The stage arranges columns based on the submission template and save the table in a CSV format for submission.
-
-[Details](doc/4_data_formatting.md)
+The stage arranges columns based on the submission template and save the table in a csv format for submission.
 
 ## Author
 
