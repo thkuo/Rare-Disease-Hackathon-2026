@@ -8,7 +8,7 @@
 ---
 ## Background
 
-[Rare Disease, Real Kid: The MVA Hackathon 2026](https://huggingface.co/spaces/SageBio/rare-disease-real-kid-mva-hackathon-2026) is a hackathon aiming to raise awareness of mosaic variegated aneuploidy (MVA) syndrome. The [MVA Society](https://mvasociety.org/) states that there are <50 cases in the world. Patients of this rare genetic disease have a high percentage of cells that contain an inaccurate number of chromosomes. Patients usually face developmental abonormalities, but symptoms could differ by sub-types of the disease despite the rarity. Participants of this hackathon are inivited to analyze genetic data and clinical information of a real case to identify genetic causes or associations to the disease. This repository contains personal methodology addressing this challenge. The rule-based workflow described by this repository aims to integrate public data regarding the disease to score the patient's genetic features based on their associations with MVA.
+[Rare Disease, Real Kid: The MVA Hackathon 2026](https://huggingface.co/spaces/SageBio/rare-disease-real-kid-mva-hackathon-2026) is a hackathon aiming to raise awareness of mosaic variegated aneuploidy (MVA) syndrome. The [MVA Society](https://mvasociety.org/) states that there are <50 cases in the world. Patients of this rare genetic disease have a high percentage of cells that contain an inaccurate number of chromosomes. Patients usually face developmental abonormalities, but symptoms could differ by sub-types of the disease despite the rarity. To supoprt families influenced by the disease, this hackathon invites people to analyze genetic data and clinical information of a real case to identify genetic causes or associations to the disease. This repository contains personal methodology addressing this challenge. The rule-based workflow described by this repository aims to integrate public data regarding the disease to score the patient's genetic features based on their associations with MVA. 
 
 Besides LICENSE, please note that this study does not aim to provide any clincal advices, and the author does not hold any liability for damages resulting directly or indirectly from codes in this repository.
 
@@ -16,8 +16,8 @@ Besides LICENSE, please note that this study does not aim to provide any clincal
 ```console
 ./
 |- scripts/ # functions used in the workflow identifying causal variants
+|- doc/ # documentation of the workflow, including rationales and scripts
 |- dev/ # prototypes of methods
-|- doc/ # documentaion of the workflow
 ```
 ## Method Overview
 
@@ -46,18 +46,20 @@ Meta-data are parsed from outputs of computational tools mentioned above, follow
 
 The integrated score is the product of the 4 sub-scores. Then, for each hit variant, bootstrapping is conducted to estimate the likelihood _l_ of obtaing a higher integrated score randomly. The representative probability _P_ is calculated as _P=1-l_.
 
-Variants with a probability of 0, whcih are usually those with an integrated score of 0, are filtered. For the rest, their sub-scores and the probiblity are then formatted into a table.
+The sub-scores and probiblity are then formatted into a table.
 
 [Details](doc/3_data_integration_and_rule_based_rating.md)
 
 4. Submission Data Formatting
 
-Compound heterozygosity (comp-het) information is added to the integrated score table. As the integrated table keeps variants forming comp-het in 2 rows, redundant rows are then dropped after comp-het data are appended to the table.
+Compound heterozygosity (comp-het) information is added to the table in this stage. For variants in compound heterozygosity, the representative row will be determined based on the probability: the one with a higher probability is kept as the representative, and the other (that is, the one with a lower probability) is consequently excluded from the table to remove redundancy in the data. Then, this stage sets a probability cutoff of 0 to keep only putative candidates as 'primary' discoveries. 
+
+The stage arranges columns based on the submission template and save the table in a CSV format for submission.
 
 [Details](doc/4_data_formatting.md)
 
 ## Author
 
-Tzu-Hao Kuo, PhD
+Tzu-Hao Kuo, PhD (Taipei, Taiwan)
 - Hugging Face: @thkuo
 - LinkedIn: [Tzu-Hao Kuo](https://www.linkedin.com/in/th-kuo) 
