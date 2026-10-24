@@ -1,6 +1,6 @@
-import requests
 import time
 import warnings
+import requests
 import pandas as pd
 from tqdm import tqdm
 from scripts import FileUtils
@@ -8,6 +8,18 @@ from scripts import FileUtils
 tqdm.pandas()
 
 def query_gnomad(chrom, pos, ref, alt):
+    """Submit query to GnomAD api
+
+    Args:
+        chrom (TYPE): variant's chromosome
+        pos (TYPE): variant's position
+        ref (TYPE): variant's reference base
+        alt (TYPE): variant's alternate base
+
+    Returns:
+        Dictionary of the response
+    """
+
     # refer to https://discuss.gnomad.broadinstitute.org/t/blocked-when-using-api-to-get-af/149/2
     api_url = 'https://gnomad.broadinstitute.org/api'
     gnomad_v = "gnomad_r4"
@@ -30,6 +42,18 @@ def query_gnomad(chrom, pos, ref, alt):
     return response.json()
 
 def identify_af(chrom, pos, ref, alt):
+    """Retrieve allele frequency data from GnomAD using the api
+
+    Args:
+        chrom (TYPE): variant's chromosome
+        pos (TYPE): variant's position
+        ref (TYPE): variant's reference base
+        alt (TYPE): variant's alternate base
+
+    Returns:
+        the allele frequency, or -1 if no data is available from the database
+    """
+
     max_try_num = 5
     try_ix = 0
     fetch_response = dict()
@@ -42,7 +66,7 @@ def identify_af(chrom, pos, ref, alt):
             print("Fetcthing failed ({})...retry in 60 sec".format(try_ix))
             time.sleep(60)
             try_ix = try_ix+1
-        
+
     if try_ix == max_try_num:
         warnings.warn("variant not found")
         return -1
@@ -61,6 +85,16 @@ def identify_af(chrom, pos, ref, alt):
             return -1
 
 def make_af_table(vcf_f: str, out_f: str=None):
+    """Read a VCF file and identify allele frequency data accordingly
+
+    Args:
+        vcf_f (str): VCF filename
+        out_f (str, optional): output filename
+
+    Returns:
+        DataFrame
+    """
+
     vcf_df = FileUtils.read_vcf(vcf_f)
     af_series = vcf_df.progress_apply(lambda row: identify_af(
         int(row["CHROM"]), int(row["POS"]), str(row["REF"]), str(row["ALT"])),

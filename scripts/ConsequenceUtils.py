@@ -1,9 +1,18 @@
-#' identify variant consequence and impact information from the annotated VCF
 import warnings
 import pandas as pd
 from scripts import FileUtils
 
 def search_attribute(info_field: str, target_attribute: str):
+    """Find the value of specific attribute in INFO
+
+    Args:
+        info_field (str): the full string of INFO
+        target_attribute (str): the attribute to be extracted
+
+    Returns:
+        the value of the specific attribute
+    """
+
     info_list = info_field.split(";")
     info_dict = dict()
     for att_val_str in info_list:
@@ -19,6 +28,15 @@ def search_attribute(info_field: str, target_attribute: str):
         return info_dict[target_attribute]
 
 def retrieve_variant_consequence(info_field: str):
+    """Find genetic consequence based on the INFO content
+
+    Args:
+        info_field (str): the full string of INFO
+
+    Returns:
+        Series of the consequence, impact (i.e., severity), and the gene symbol
+    """
+
     ann=search_attribute(info_field, "ANN")
     representative_ann = ann.split(",")[0]
     representative_ann_fields = representative_ann.split("|")
@@ -30,6 +48,16 @@ def retrieve_variant_consequence(info_field: str):
                       "gene": gene_name})
 
 def make_consequence_table(vcf_f: str, out_f: str=None):
+    """Create a table of genetic consequences for the given variant data from the VCF file
+
+    Args:
+        vcf_f (str): VCF filename
+        out_f (str, optional): output filename
+
+    Returns:
+        DataFrame of the consequences
+    """
+
     vcf_df = FileUtils.read_vcf(vcf_f)
     consequence_df = vcf_df.apply(
         lambda row: retrieve_variant_consequence(row["INFO"]),
