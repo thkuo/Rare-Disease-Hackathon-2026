@@ -16,8 +16,8 @@ Besides LICENSE, please note that this study does not aim to provide any clincal
 ```console
 ./
 |- scripts/ # functions used in the workflow identifying causal variants
+|- doc/ # documentation of the workflow, including rationales and scripts
 |- dev/ # prototypes of methods
-|- doc/ # documentaion of the workflow
 ```
 ## Method Overview
 
@@ -46,18 +46,19 @@ Meta-data are parsed from outputs of computational tools mentioned above, follow
 
 The integrated score is the product of the 4 sub-scores. Then, for each hit variant, bootstrapping is conducted to estimate the likelihood _l_ of obtaing a higher integrated score randomly. The representative probability _P_ is calculated as _P=1-l_.
 
-Variants with a probability of 0, whcih are usually those with an integrated score of 0, are filtered. For the rest, their sub-scores and the probiblity are then formatted into a table.
+The sub-scores and probiblity are then formatted into a table.
 
 [Details](doc/3_data_integration_and_rule_based_rating.md)
 
 4. Submission Data Formatting
 
-Compound heterozygosity (comp-het) information is added to the integrated score table. As the integrated table keeps variants forming comp-het in 2 rows, redundant rows are then dropped after comp-het data are appended to the table.
+Compound heterozygosity (comp-het) information is added to the table in this stage. For variants in compound heterozygosity, the representative row will be determined based on the probability: the one with a higher probability is kept as the representative, and the other (that is, the one with a lower probability) is consequently excluded from the table to remove redundancy in the data. Then, this stage sets a probability cutoff of 0 to keep only putative candidates. 
+The stage adds further columns based on the submission template before saving it in a CSV format.
 
 [Details](doc/4_data_formatting.md)
 
 ## Author
 
-Tzu-Hao Kuo, PhD
+Tzu-Hao Kuo, PhD (Taipei, Taiwan)
 - Hugging Face: @thkuo
 - LinkedIn: [Tzu-Hao Kuo](https://www.linkedin.com/in/th-kuo) 
