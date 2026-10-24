@@ -36,7 +36,7 @@ This stage includes gathering data regarding variant-level and gene-level associ
 
 This stage focuses on bioinformatic analyses to aggregate evidence for identifying putative causal variants. First, the intersect between the patient's variants (that is, the VCF file provided by the organizer) and MVA-associated variants or genes is computed using bedtools. For each overlapped variant (or hit variant), the number of variant-level or gene-level overlapps are counted. Then, genetic consequences (e.g., missense) are annotaed using snpeff based on human genome GRCh38p14. Alternate allele frequencies of overlapped variants are identified using GnomAD GraphicQL API.
 
-This workflow also investigates compound heterozugosity (comp-het), which is a pair of causal variants inherited from different sources. The overlapped variants are first filtered based on their qualities and genetic impacts using 'slivar expr'. Then, putative comp-hets are investigated among filtered variants of the singleton (i.e., no trios) using 'slivar compound-hets'.
+This workflow also investigates compound heterozygosity (comp-het), which is a pair of influential variants at the same locus inherited from different sources. The overlapped variants are first filtered based on their qualities and genetic impacts using 'slivar expr'. Then, putative comp-hets are investigated among filtered variants of the singleton (i.e., no trios) using 'slivar compound-hets'.
 
 [Details](doc/2_bioinformatics.md)
 
