@@ -6,7 +6,7 @@ MedGen is a database harboring medical genetics. MVA-associated genes are identi
 - type 4: https://www.ncbi.nlm.nih.gov/medgen/1824040
 - type 7: https://www.ncbi.nlm.nih.gov/medgen/1824057
 
-Then, to determine their locational information, the gff3 file of GRCh38p14 from Ensembl is filtered with the method below:
+Then, their sequential coordinates are extracted from the [gff3 file of GRCh38p14 downloaded from Ensembl](https://www.ensembl.org/genome/GCA_000001405.29) with:
 
 ```sh
 export full_gff3=../../data/GRCh38p14_genes.gff3.bgz
@@ -18,10 +18,12 @@ zcat $full_gff3 | awk '$3 == "gene"' | grep 'Name=CENATAC;' >> $out_f
 zcat $full_gff3 | awk '$3 == "gene"' | grep 'Name=MAD1L1;' >> $out_f
 ```
 
-The data are then converted into bed format for further filtration.
+The file in a gff3 format is then converted into a bed format with:
 
 ```sh
-awk '{print $1"\t"$4-1"\t"$5"\t"$9}' marker_genes.gff3 > marker_genes.bed
+awk '{print $1"\t"$4-1"\t"$5"\t"$9}' $out_f > marker_genes.bed
 ```
 
-_NOTE: the coordinates in gff3 are 1-based, but that of the starting site in bed format is 0-based._
+This bed file is then used in the next step to identify patient's variants in the loci.
+
+_NOTE: coordinates in a gff3 format are 1-based, but those of the starting site in a bed format is 0-based._
