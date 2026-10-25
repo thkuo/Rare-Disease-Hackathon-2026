@@ -4,6 +4,7 @@
 - Background
 - Repository Structure
 - Method Overview
+- Advantages and limitations
 - Author
 ---
 ## Background
@@ -30,7 +31,7 @@ The rule-based workflow identifies putatively causal variants for the patient wi
 
 1. Knowledge Base Preparation ([doc](doc/1_knowledge_base_prep.md))
 
-This stage includes gathering data regarding variant-level and gene-level association with MVA from public databases. For variant-level information, MVA-associated variants are identified and downloaded from ClinVar. For gene-level data, MVA-associated genes are identified from MedGen. Sequential position of MVA-associated genes are then extracted from human genome GRCh38p14. 
+This stage includes gathering data regarding variant-level and gene-level association with MVA from public databases. For variant-level information, MVA-associated variants are identified and downloaded from ClinVar. For gene-level data, MVA-associated genes are identified from MedGen. The .gff3 and .fa files of human genome version GRCh38p14 are downloaded from Ensembl.
 
 2. Bioinformatic Analysis ([doc](doc/2_bioinformatics.md))
 
@@ -52,6 +53,24 @@ The sub-scores and probiblity are then formatted into a table.
 Compound heterozygosity (comp-het) information is added to the table in this stage. For variants in compound heterozygosity, the representative row will be determined based on the probability: the one with a higher probability is kept as the representative, and the other (that is, the one with a lower probability) is consequently excluded from the table to remove redundancy in the data. Then, this stage sets a probability cutoff of 0 to keep only putative candidates as 'primary' discoveries. 
 
 The stage arranges columns based on the submission template and save the table in a csv format for submission.
+
+## Advantages and limitations
+
+Artificial intelligence (AI) models are powerful tools for summarizing information from large datasets. 
+However, rare disease cases may be underrepresented in their training data, increasing the risk of 
+false-positive results. This study addresses this limitation by developing a rule-based workflow that 
+uses genetic evidence to identify putatively causal variants for mosaic variegated aneuploidy. The method 
+filters and scores variants based on curated data from public databases. Compared with AI models, the 
+transparent decision process and traceable data source make the results more explainable. Clinicians, scientist, and patients are 
+expected to interpret the results more precisely. In addition, because the rules can be rearranged or modified 
+easily, updating the model is more efficient than retraining an AI model.
+
+Despite the scientific value, the method could face difficulties identifying complex or novel variant-disease
+relationships, for which AI-based approaches may be more useful to detect patterns based on large datasets. 
+In addition, the run time is another observable disadvantage of the rule-based workflow. Most AI/ML models could 
+generate outcomes promptly, which can make the method more scalable and applicable to various domains. 
+Therefore, AI-based techniques and domain knowledge-based approaches might be more and more complementary 
+instead of competitive with each other in the future research of complex biological topics. 
 
 ## Author
 
